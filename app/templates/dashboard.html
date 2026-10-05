@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | shrt{% endblock %}
+{% block content %}
+<section class="dash-head">
+  <h1>Hello, {{ current_user.email.split('@')[0] }}.</h1>
+  <p>Your links and their clicks show up here.</p>
+</section>
+
+<section class="strip" aria-label="Summary">
+  <div><strong>{{ links|length }}</strong><span>Links</span></div>
+  <div><strong>{{ links|map(attribute='clicks')|map('length')|sum }}</strong><span>Total clicks</span></div>
+  <div><strong>{{ top_device }}</strong><span>Top device</span></div>
+</section>
+
+<section class="charts">
+  <div class="panel wide">
+    <div class="panel-head">
+      <h3>Clicks per day</h3>
+      <div class="range">
+        <a href="?days=7" class="{{ 'on' if days == 7 }}">7 days</a>
+        <a href="?days=30" class="{{ 'on' if days == 30 }}">30 days</a>
+      </div>
+    </div>
+    <div class="chart-box"><canvas id="perDay"></canvas></div>
+  </div>
+  <div class="panel">
+    <h3>Devices</h3>
+    <div class="chart-box"><canvas id="devices"></canvas></div>
+  </div>
+  <div class="panel">
+    <h3>Top links</h3>
+    <div class="chart-box"><canvas id="topLinks"></canvas></div>
+  </div>
+</section>
+
+<section class="empty">
+  <h2>Shorten a link.</h2>
+  <p>Paste a long URL and shrt gives you a six-character link.</p>
+    <form class="shorten" method="post" action="{{ url_for('links.create') }}" novalidate>
+    {{ form.hidden_tag() }}
+    {{ form.original_url(placeholder="https://example.com/a-very-long-page") }}
+    {{ form.expires_in() }}
+    <button class="btn" type="submit">Shorten link</button>
+  </form>
+</section>
+
+<section class="links">
+  <h2>Your links</h2>
+  {% for link in links %}
+  <div class="link-row">
+    <div class="link-main">
+      <a class="link-short" href="{{ url_for('main.follow', short_code=link.short_code) }}" target="_blank" rel="noopener">{{ request.host }}/{{ link.short_code }}</a>
+      <p class="link-orig" title="{{ link.original_url }}">{{ link.original_url }}</p>
+      <p class="link-meta">{{ link.clicks|length }} click{{ '' if link.clicks|length == 1 else 's' }}, created {{ link.created_at.strftime('%d %b %Y') }}{% if link.expires_at %}, expires {{ link.expires_at.strftime('%d %b %Y') }}{% endif %}</p>
+    </div>
+    <div class="link-actions">
+      <a class="btn btn-sm" href="{{ url_for('links.stats', link_id=link.id) }}">Stats</a>
+      <button class="btn btn-sm" type="button" data-copy="{{ request.host_url }}{{ link.short_code }}">Copy</button>
+      <form method="post" action="{{ url_for('links.delete', link_id=link.id) }}" onsubmit="return confirm('Delete this link?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+  {% if not links %}<p class="none">No links yet. Paste a URL above to create your first one.</p>{% endif %}
+</section>
+
+<script>
+document.querySelectorAll('[data-copy]').forEach(function (btn) {
+  btn.addEventListener('click', async function () {
+    try {
+      await navigator.clipboard.writeText(btn.dataset.copy);
+      var label = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(function () { btn.textContent = label; }, 1500);
+    } catch (e) {}
+  });
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const data = {{ charts|tojson }};
+const COLORS = ['#2338ff', '#ff6a3d', '#0c1226', '#9aa5ff', '#d5dae8'];
+
+Chart.defaults.font.family = 'Hanken Grotesk, sans-serif';
+Chart.defaults.color = '#5b6482';
+Chart.defaults.maintainAspectRatio = false;
+
+function noData(id) {
+  document.getElementById(id).parentNode.innerHTML = '<p class="caption">No clicks yet.</p>';
+}
+
+new Chart(document.getElementById('perDay'), {
+  type: 'bar',
+  data: { labels: data.perDay.labels,
+          datasets: [{ data: data.perDay.values, backgroundColor: COLORS[0], borderRadius: 6 }] },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { precision: 0 } },
+      x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }
+    }
+  }
+});
+
+if (data.devices.values.length) {
+  new Chart(document.getElementById('devices'), {
+    type: 'doughnut',
+    data: { labels: data.devices.labels,
+            datasets: [{ data: data.devices.values, backgroundColor: COLORS, borderWidth: 0 }] },
+    options: { cutout: '62%', plugins: { legend: { position: 'bottom' } } }
+  });
+} else { noData('devices'); }
+
+if (data.topLinks.values.some(function (v) { return v > 0; })) {
+  new Chart(document.getElementById('topLinks'), {
+    type: 'bar',
+    data: { labels: data.topLinks.labels,
+            datasets: [{ data: data.topLinks.values, backgroundColor: COLORS[1], borderRadius: 6 }] },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } }
+    }
+  });
+} else { noData('topLinks'); }
+</script>
+{% endblock %}

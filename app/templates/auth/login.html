@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field %}
+{% block title %}Log in | shrt{% endblock %}
+{% block content %}
+<section class="auth">
+  <aside class="auth-side">
+    <h1>Your links are waiting.</h1>
+    <p>Log in to see which ones people are clicking.</p>
+  </aside>
+  <div class="auth-main">
+    <form class="auth-form" method="post" novalidate>
+      {{ form.hidden_tag() }}
+      <h2>Log in</h2>
+      {{ field(form.email, 'email') }}
+      {{ field(form.password, 'current-password') }}
+      {{ form.submit(class="btn btn-fill") }}
+      <p class="switch">New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+    </form>
+  </div>
+</section>
+{% endblock %}

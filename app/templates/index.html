@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}shrt | Short links, with every click counted{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Short links, with every click counted.</h1>
+  <p class="lead">shrt turns a long URL into a six-character link, then records when, where and on what device it gets opened.</p>
+  <div class="hero-actions">
+    {% if current_user.is_authenticated %}
+      <a class="btn btn-light" href="{{ url_for('main.dashboard') }}">Open dashboard</a>
+    {% else %}
+      <a class="btn btn-light" href="{{ url_for('auth.register') }}">Create account</a>
+      <a class="btn" href="{{ url_for('auth.login') }}">Log in</a>
+    {% endif %}
+  </div>
+  <div class="shrink" aria-label="Example of a long link becoming a short link">
+    <div class="long">https://www.example.com/blog/2026/10/how-to-build-a-flask-app-with-sqlalchemy?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=autumn&amp;ref=7f3a9c</div>
+    <div class="short">shrt.link/<b>x7Qk2a</b></div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>See who opened your link, and when.</h2>
+  <p class="sub">Every redirect is saved with its time, device and source, so each link gets its own history.</p>
+  <div class="sample">
+    <div class="panel">
+      <h3>Clicks this week</h3>
+      <div class="bars" role="img" aria-label="Bar chart of daily clicks, highest on Friday">
+        <div style="--h:28%"></div><div style="--h:45%"></div><div style="--h:38%"></div><div style="--h:62%"></div><div style="--h:100%"></div><div style="--h:71%"></div><div style="--h:54%"></div>
+      </div>
+      <div class="days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    </div>
+    <div class="panel">
+      <h3>Latest clicks</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Time</th><th>Link</th><th>Device</th><th>Came from</th></tr></thead>
+          <tbody>
+            <tr><td>09:41</td><td>x7Qk2a</td><td>Phone</td><td>Instagram</td></tr>
+            <tr><td>09:38</td><td>x7Qk2a</td><td>Laptop</td><td>Direct</td></tr>
+            <tr><td>09:12</td><td>Pm4tZ9</td><td>Phone</td><td>WhatsApp</td></tr>
+            <tr><td>08:57</td><td>x7Qk2a</td><td>Tablet</td><td>Google</td></tr>
+            <tr><td>08:20</td><td>b2Vn8c</td><td>Laptop</td><td>LinkedIn</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">Sample data, shown for illustration.</p>
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div>
+    <h2>Six characters, 56 billion possible links.</h2>
+    <p>Each code is picked from 62 letters and digits. If a code is already taken, shrt generates a new one.</p>
+  </div>
+  {% if not current_user.is_authenticated %}<a class="btn btn-light" href="{{ url_for('auth.register') }}">Create account</a>{% endif %}
+</section>
+{% endblock %}

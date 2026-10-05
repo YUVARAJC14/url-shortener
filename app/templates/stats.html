@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Link stats | shrt{% endblock %}
+{% block content %}
+{% macro breakdown(title, rows) %}
+<div class="panel">
+  <h3>{{ title }}</h3>
+  {% if rows %}
+  <div class="table-scroll"><table><tbody>
+    {% for name, count in rows %}<tr><td>{{ name }}</td><td>{{ count }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% else %}<p class="caption">No clicks yet.</p>{% endif %}
+</div>
+{% endmacro %}
+
+<section class="dash-head">
+  <h1>{{ request.host }}/{{ link.short_code }}</h1>
+  <p>{{ link.original_url }}</p>
+  <div class="hero-actions"><a class="btn" href="{{ url_for('main.dashboard') }}">Back to dashboard</a></div>
+</section>
+
+<section class="strip" aria-label="Summary">
+  <div><strong>{{ total }}</strong><span>Total clicks</span></div>
+  <div><strong>{{ devices[0][0] if devices else 'None yet' }}</strong><span>Top device</span></div>
+  <div><strong>{{ referrers[0][0] if referrers else 'None yet' }}</strong><span>Top source</span></div>
+</section>
+
+<section class="sample">
+  {{ breakdown('Devices', devices) }}
+  {{ breakdown('Browsers', browsers) }}
+</section>
+
+<section class="sample">
+  {{ breakdown('Where clicks come from', referrers) }}
+  <div class="panel">
+    <h3>Latest clicks</h3>
+    {% if recent %}
+    <div class="table-scroll"><table>
+      <thead><tr><th>Time (UTC)</th><th>Device</th><th>Browser</th></tr></thead>
+      <tbody>
+        {% for c in recent %}
+        <tr><td>{{ c.clicked_at.strftime('%d %b, %H:%M') }}</td><td>{{ c.device }}</td><td>{{ c.browser }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table></div>
+    {% else %}<p class="caption">No clicks yet.</p>{% endif %}
+  </div>
+</section>
+{% endblock %}

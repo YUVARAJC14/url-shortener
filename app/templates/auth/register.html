@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field %}
+{% block title %}Create account | shrt{% endblock %}
+{% block content %}
+<section class="auth">
+  <aside class="auth-side">
+    <h1>Make a long link short.</h1>
+    <p>Create an account to shorten links and track every click.</p>
+  </aside>
+  <div class="auth-main">
+    <form class="auth-form" method="post" novalidate>
+      {{ form.hidden_tag() }}
+      <h2>Create account</h2>
+      {{ field(form.email, 'email') }}
+      {{ field(form.password, 'new-password') }}
+      {{ field(form.confirm, 'new-password') }}
+      {{ form.submit(class="btn btn-fill") }}
+      <p class="switch">Already registered? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+    </form>
+  </div>
+</section>
+{% endblock %}
